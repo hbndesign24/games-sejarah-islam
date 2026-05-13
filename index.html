@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jejak Pemuda Islam — Game Kuis</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:    #1a1510;
+    --gold:   #c9933a;
+    --gold2:  #e8b96a;
+    --cream:  #f7f3ec;
+    --sand:   #ede6d8;
+    --parch:  #d9cdb8;
+    --teal:   #1b6b5a;
+    --teal2:  #2a8f76;
+    --teal3:  #d0ede7;
+    --red:    #8b2e2e;
+    --red2:   #fdeaea;
+    --r: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 40px;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* ── HEADER ── */
+  .top-bar {
+    background: var(--ink);
+    border-radius: var(--r);
+    padding: 20px 24px 18px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .top-bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(201,147,58,.08) 39px,rgba(201,147,58,.08) 40px),
+      repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(201,147,58,.08) 39px,rgba(201,147,58,.08) 40px);
+  }
+  .top-bar-inner { position: relative; z-index: 1; }
+  .brand {
+    font-family: 'Amiri', serif;
+    font-size: 22px;
+    color: var(--gold2);
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+  .brand-sub {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.45);
+  }
+  .hud {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .hud-pill {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 99px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,.7);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hud-pill b { color: #fff; font-weight: 600; }
+  .hud-pill.good b { color: var(--gold2); }
+  .hud-pill.bad  b { color: #f08080; }
+
+  /* progress */
+  .prog-track {
+    height: 3px;
+    background: rgba(255,255,255,.12);
+    border-radius: 99px;
+    margin-top: 14px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 99px;
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── SCENE CARD ── */
+  .scene-card {
+    background: #fff;
+    border: 1px solid var(--parch);
+    border-radius: var(--r);
+    overflow: hidden;
+    margin-bottom: 12px;
+    transition: box-shadow .2s;
+  }
+
+  /* IMAGE SLOT — isi dengan <img> dari GPT */
+  .img-slot {
+    width: 100%;
+    height: 220px;
+    background: var(--sand);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .img-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .img-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .img-placeholder .ph-icon {
+    width: 48px; height: 48px;
+    border: 2px dashed var(--parch);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--parch);
+    font-size: 20px;
+  }
+  .img-placeholder .ph-text {
+    font-size: 11px;
+    color: #bbb;
+    letter-spacing: .5px;
+  }
+  .img-location-badge {
+    position: absolute;
+    bottom: 10px; left: 10px;
+    background: rgba(26,21,16,.72);
+    backdrop-filter: blur(4px);
+    color: var(--gold2);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid rgba(201,147,58,.3);
+  }
+
+  /* question body */
+  .q-body {
+    padding: 18px 20px 20px;
+  }
+  .cat-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 12px;
+  }
+  .cat-tag.kota   { background: #e8f4ef; color: var(--teal); }
+  .cat-tag.tokoh  { background: #f5edda; color: #7a5a1e; }
+  .cat-tag.nilai  { background: #eef0fa; color: #3b3fa8; }
+  .cat-tag.bonus  { background: #fdeaea; color: var(--red); }
+
+  .q-text {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .q-hint {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .q-hint svg { flex-shrink: 0; }
+
+  /* ── OPTIONS ── */
+  .opts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .opt {
+    background: #fff;
+    border: 1.5px solid var(--parch);
+    border-radius: var(--r);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: left;
+    line-height: 1.4;
+    transition: border-color .15s, background .15s, transform .08s;
+  }
+  .opt:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: #fffdf7;
+  }
+  .opt:active:not(:disabled) { transform: scale(.98); }
+
+  .opt-letter {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--sand);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    color: #888;
+    margin-top: 1px;
+  }
+
+  .opt.correct {
+    border-color: var(--teal2);
+    background: var(--teal3);
+  }
+  .opt.correct .opt-letter { background: var(--teal2); color: #fff; }
+  .opt.correct .opt-txt { color: var(--teal); }
+
+  .opt.wrong {
+    border-color: #e0a0a0;
+    background: var(--red2);
+  }
+  .opt.wrong .opt-letter { background: #e07070; color: #fff; }
+  .opt.wrong .opt-txt { color: var(--red); }
+
+  .opt:disabled { cursor: default; }
+
+  /* ── FEEDBACK ── */
+  .feedback-box {
+    border-radius: var(--r);
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    display: none;
+  }
+  .feedback-box.ok {
+    background: var(--teal3);
+    border: 1px solid var(--teal2);
+    color: var(--teal);
+    display: block;
+  }
+  .feedback-box.no {
+    background: var(--red2);
+    border: 1px solid #e0a0a0;
+    color: var(--red);
+    display: block;
+  }
+  .feedback-box strong { font-weight: 700; }
+
+  /* ── NEXT BUTTON ── */
+  .next-btn {
+    width: 100%;
+    background: var(--ink);
+    color: var(--gold2);
+    border: none;
+    border-radius: var(--r);
+    padding: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity .15s;
+  }
+  .next-btn:hover { opacity: .88; }
+  .next-btn svg { width: 16px; height: 16px; }
+
+  /* ── RESULT ── */
+  .result-screen {
+    display: none;
+    background: #fff;
+    border: 1px solid var(--parch);
+    border-radius: var(--r);
+    padding: 32px 24px 28px;
+    text-align: center;
+  }
+  .res-stars {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .res-stars svg { width: 32px; height: 32px; }
+  .res-score {
+    font-family: 'Amiri', serif;
+    font-size: 52px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .res-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 16px;
+  }
+  .res-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .res-sub {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .res-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .res-chip {
+    padding: 8px 20px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .res-chip.g { background: var(--teal3); color: var(--teal); }
+  .res-chip.r { background: var(--red2);  color: var(--red);  }
+  .restart-btn {
+    background: var(--ink);
+    color: var(--gold2);
+    border: none;
+    border-radius: var(--r);
+    padding: 13px 32px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .restart-btn:hover { opacity: .85; }
+
+  /* ornamental divider */
+  .ornament {
+    text-align: center;
+    color: var(--gold);
+    font-size: 16px;
+    letter-spacing: 8px;
+    margin: 4px 0 16px;
+    opacity: .5;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .fade-up { animation: fadeUp .3s ease both; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="top-bar">
+    <div class="top-bar-inner">
+      <div class="brand">جيل الإسلام — Jejak Pemuda Islam</div>
+      <div class="brand-sub">Game Kuis Sejarah · Kelas 6 SD</div>
+      <div class="hud">
+        <div class="hud-pill" id="hud-soal">Soal <b id="h-cur">1</b>/<b id="h-tot">10</b></div>
+        <div class="hud-pill good">Benar <b id="h-benar">0</b></div>
+        <div class="hud-pill bad">Salah <b id="h-salah">0</b></div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog" style="width:10%"></div></div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game-wrap">
+    <!-- SCENE CARD -->
+    <div class="scene-card fade-up">
+      <div class="img-slot" id="img-slot">
+        <!-- 
+          CARA MENGGANTI GAMBAR:
+          Hapus div.img-placeholder di bawah, ganti dengan:
+          <img src="URL_GAMBAR_KAMU" alt="deskripsi gambar">
+          
+          Atau per soal diatur otomatis lewat JS (lihat data soal).
+        -->
+        <div class="img-placeholder">
+          <div class="ph-icon">&#9654;</div>
+          <div class="ph-text">Gambar akan muncul di sini</div>
+        </div>
+        <div class="img-location-badge" id="img-badge">–</div>
+      </div>
+      <div class="q-body">
+        <div class="cat-tag" id="cat-tag">–</div>
+        <div class="q-text" id="q-text">Memuat soal…</div>
+        <div class="q-hint">
+          <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><circle cx="8" cy="8" r="7" stroke="#bbb" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <span id="q-hint">–</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ornament">· · ✦ · ·</div>
+
+    <!-- OPTIONS -->
+    <div class="opts" id="opts-grid"></div>
+
+    <!-- FEEDBACK -->
+    <div class="feedback-box" id="feedback"></div>
+
+    <!-- NEXT -->
+    <button class="next-btn" id="next-btn">
+      <span id="next-label">Soal berikutnya</span>
+      <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-screen" id="result-screen">
+    <div class="res-stars" id="res-stars"></div>
+    <div class="res-score" id="res-score">–</div>
+    <div class="res-label">dari 10 soal</div>
+    <div class="res-title" id="res-title">–</div>
+    <div class="res-sub" id="res-sub">–</div>
+    <div class="res-breakdown">
+      <div class="res-chip g">✓ Benar: <span id="rb-benar">0</span></div>
+      <div class="res-chip r">✗ Salah: <span id="rb-salah">0</span></div>
+    </div>
+    <button class="restart-btn" onclick="startGame()">&#8635; Main Lagi</button>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA SOAL
+// Untuk menambah gambar: isi properti "img" dengan URL gambar dari GPT Image
+// Contoh: img: "https://..../konstantinopel.png"
+// ─────────────────────────────────────────────
+const SOAL = [
+  {
+    lokasi: "Konstantinopel, 1453 M",
+    img: "https://iili.io/Bby8xa9.png",   // ← isi URL gambar GPT di sini
+    cat: "kota", catLbl: "Kota Bersejarah",
+    text: "Kota ini ditaklukkan oleh seorang pemuda berusia 21 tahun pada tahun 1453 M",
+    hint: "Ibukota Kekaisaran Romawi Timur (Byzantium)",
+    correct: "Konstantinopel",
+    opts: ["Konstantinopel", "Yerusalem", "Baghdad", "Makkah"],
+    fb: "Benar! Konstantinopel ditaklukkan oleh Sultan Muhammad Al-Fatih pada 1453 M saat beliau baru berusia 21 tahun. Nabi ﷺ sudah menubuatkan kemenangan ini ratusan tahun sebelumnya!"
+  },
+  {
+    lokasi: "Istanbul / Konstantinopel",
+    img: "",
+    cat: "tokoh", catLbl: "Tokoh Pemuda",
+    text: "Siapakah pemuda penakluk Konstantinopel yang dijuluki \"Sang Penakluk\"?",
+    hint: "Beliau adalah Sultan ke-7 Dinasti Utsmaniyah",
+    correct: "Muhammad Al-Fatih",
+    opts: ["Muhammad Al-Fatih", "Salahuddin Al-Ayyubi", "Usamah bin Zaid", "Ali bin Abi Thalib"],
+    fb: "Tepat! Muhammad Al-Fatih artinya Muhammad Sang Penakluk. Beliau mulai belajar Al-Quran, fiqih, dan strategi sejak kecil — pemuda yang dipersiapkan dengan matang!"
+  },
+  {
+    lokasi: "Al-Quds (Palestina), 1187 M",
+    img: "",
+    cat: "kota", catLbl: "Kota Bersejarah",
+    text: "Kota suci ini dibebaskan dari tentara Salib oleh Salahuddin Al-Ayyubi pada 1187 M",
+    hint: "Di sinilah Masjid Al-Aqsa berada — kiblat pertama umat Islam",
+    correct: "Al-Quds (Palestina)",
+    opts: ["Makkah", "Madinah", "Al-Quds (Palestina)", "Damaskus"],
+    fb: "Benar! Salahuddin Al-Ayyubi membebaskan Al-Quds pada 1187 M — tanpa pertumpahan darah berlebihan. Beliau bahkan menjamin keamanan seluruh penduduknya!"
+  },
+  {
+    lokasi: "Medan Perang Hattin, 1187 M",
+    img: "",
+    cat: "tokoh", catLbl: "Tokoh Pemuda",
+    text: "Panglima Muslim yang membebaskan Palestina dari tentara Salib",
+    hint: "Dikenal sangat adil dan penyayang — bahkan kepada musuhnya",
+    correct: "Salahuddin Al-Ayyubi",
+    opts: ["Tariq bin Ziyad", "Salahuddin Al-Ayyubi", "Muhammad Al-Fatih", "Khalid bin Walid"],
+    fb: "Hebat! Salahuddin Al-Ayyubi (Saladin) adalah pahlawan Islam yang luar biasa. Raja Richard I dari Inggris — musuhnya — pun mengakui kemuliaan akhlaknya!"
+  },
+  {
+    lokasi: "Andalusia (Spanyol), 711 M",
+    img: "",
+    cat: "kota", catLbl: "Kota Bersejarah",
+    text: "Tariq bin Ziyad menyeberangi lautan dan menaklukkan wilayah ini untuk Islam pada 711 M",
+    hint: "Kini dikenal sebagai negara Spanyol di ujung barat benua Eropa",
+    correct: "Andalusia (Spanyol)",
+    opts: ["Persia", "India", "Andalusia (Spanyol)", "Romawi Timur"],
+    fb: "Benar! Tariq bin Ziyad menaklukkan Andalusia pada 711 M. Gunung tempat ia mendarat kini bernama Gibraltar — dari bahasa Arab \"Jabal Tariq\" artinya Gunung Tariq!"
+  },
+  {
+    lokasi: "Selat Gibraltar (Jabal Tariq)",
+    img: "",
+    cat: "tokoh", catLbl: "Tokoh Pemuda",
+    text: "Pemuda ini membakar kapal-kapalnya agar pasukannya tidak bisa mundur",
+    hint: "Namanya diabadikan sebagai nama selat di Eropa — Jabal Tariq",
+    correct: "Tariq bin Ziyad",
+    opts: ["Usamah bin Zaid", "Tariq bin Ziyad", "Salahuddin Al-Ayyubi", "Amr bin Ash"],
+    fb: "Tepat! Tariq bin Ziyad berkata: \"Di depan ada musuh, di belakang ada laut!\" — semangat pantang mundur yang luar biasa. Itulah keberanian pemuda Islam!"
+  },
+  {
+    lokasi: "Perang Mu'tah, 629 M",
+    img: "",
+    cat: "tokoh", catLbl: "Tokoh Pemuda",
+    text: "Rasulullah ﷺ mengangkat pemuda berusia 18 tahun ini sebagai panglima perang",
+    hint: "Beliau adalah putra Zaid bin Haritsah, sahabat kesayangan Nabi ﷺ",
+    correct: "Usamah bin Zaid",
+    opts: ["Ali bin Abi Thalib", "Usamah bin Zaid", "Abdullah bin Masud", "Muadz bin Jabal"],
+    fb: "Luar biasa! Usamah bin Zaid jadi panglima di usia 18 tahun — membuktikan Islam sangat menghargai kemampuan pemuda, bukan sekadar usia atau keturunan!"
+  },
+  {
+    lokasi: "Madinah Al-Munawwarah",
+    img: "",
+    cat: "tokoh", catLbl: "Tokoh Pemuda",
+    text: "Pemuda kaya Makkah ini meninggalkan kemewahan demi berdakwah ke Madinah",
+    hint: "Beliau adalah duta Islam pertama yang dikirim Rasulullah ﷺ ke Madinah",
+    correct: "Mush'ab bin Umair",
+    opts: ["Mush'ab bin Umair", "Abdullah bin Umar", "Zaid bin Tsabit", "Bilal bin Rabah"],
+    fb: "Benar! Mush'ab bin Umair meninggalkan seluruh kekayaan keluarganya demi Islam. Berkat dakwahnya, Islam berkembang pesat di Madinah sebelum Nabi ﷺ hijrah!"
+  },
+  {
+    lokasi: "Majelis Ilmu Islam",
+    img: "",
+    cat: "nilai", catLbl: "Nilai & Pelajaran",
+    text: "Apa kunci utama keberhasilan para pemuda Muslim dalam sejarah?",
+    hint: "Bukan hanya kekuatan fisik atau jumlah pasukan",
+    correct: "Iman kuat dan ilmu yang matang",
+    opts: ["Pasukan yang sangat banyak", "Iman kuat dan ilmu yang matang", "Kekayaan dan jabatan", "Keturunan bangsawan"],
+    fb: "Tepat sekali! Iman kuat + ilmu yang matang + tekad yang bulat = kunci sukses para pemuda Islam. Al-Fatih belajar keras sejak kecil — bukan sekadar mengandalkan kekuatan!"
+  },
+  {
+    lokasi: "Pertanyaan Bonus",
+    img: "",
+    cat: "bonus", catLbl: "Tantangan Bonus",
+    text: "Muhammad Al-Fatih sudah serius belajar Al-Quran, fiqih, dan strategi perang sejak usia berapa?",
+    hint: "Sangat muda — lebih muda dari kalian sekarang!",
+    correct: "Sebelum usia 10 tahun",
+    opts: ["Sebelum usia 10 tahun", "Usia 12 tahun", "Usia 15 tahun", "Usia 18 tahun"],
+    fb: "Benar! Al-Fatih belajar dari sangat kecil. Pesannya untuk kalian: mulai belajar sungguh-sungguh SEKARANG! Seusia kalian, Al-Fatih sudah hafal Al-Quran dan belajar bahasa Arab, Persia, serta strategi perang."
+  }
+];
+
+// ─────────────────────────────────────────────
+// GAME ENGINE
+// ─────────────────────────────────────────────
+const LETTERS = ['A','B','C','D'];
+
+let questions = [], cur = 0, benar = 0, salah = 0, answered = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  questions = shuffle(SOAL);
+  cur = 0; benar = 0; salah = 0; answered = false;
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('game-wrap').style.display = 'block';
+  renderQ();
+}
+
+function renderQ() {
+  answered = false;
+  const q = questions[cur];
+  const total = questions.length;
+
+  // HUD
+  document.getElementById('h-cur').textContent = cur + 1;
+  document.getElementById('h-tot').textContent = total;
+  document.getElementById('h-benar').textContent = benar;
+  document.getElementById('h-salah').textContent = salah;
+  document.getElementById('prog').style.width = Math.round(((cur + 1) / total) * 100) + '%';
+
+  // IMAGE SLOT
+  const slot = document.getElementById('img-slot');
+  if (q.img) {
+    slot.innerHTML = `<img src="${q.img}" alt="${q.lokasi}"><div class="img-location-badge">${q.lokasi}</div>`;
+  } else {
+    slot.innerHTML = `
+      <div class="img-placeholder">
+        <div class="ph-icon">&#9654;</div>
+        <div class="ph-text">[ Gambar: ${q.lokasi} ]</div>
+      </div>
+      <div class="img-location-badge">${q.lokasi}</div>`;
+  }
+
+  // BADGE
+  const tag = document.getElementById('cat-tag');
+  tag.className = 'cat-tag ' + q.cat;
+  tag.textContent = q.catLbl;
+
+  // QUESTION
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-hint').textContent = q.hint;
+
+  // OPTIONS
+  const grid = document.getElementById('opts-grid');
+  grid.innerHTML = '';
+  const shuffled = shuffle(q.opts);
+  shuffled.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-letter">${LETTERS[i]}</span><span class="opt-txt">${opt}</span>`;
+    btn.onclick = () => pick(opt, q.correct, q.fb, btn, shuffled);
+    grid.appendChild(btn);
+  });
+
+  // FEEDBACK + NEXT
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback-box';
+  fb.innerHTML = '';
+
+  const nb = document.getElementById('next-btn');
+  nb.style.display = 'none';
+  document.getElementById('next-label').textContent =
+    cur + 1 < total ? 'Soal berikutnya' : 'Lihat hasil';
+}
+
+function pick(chosen, correct, fbText, btn, shuffled) {
+  if (answered) return;
+  answered = true;
+
+  const allBtns = document.querySelectorAll('.opt');
+  allBtns.forEach(b => {
+    b.disabled = true;
+    const txt = b.querySelector('.opt-txt').textContent;
+    if (txt === correct) b.classList.add('correct');
+  });
+
+  const fb = document.getElementById('feedback');
+  if (chosen === correct) {
+    benar++;
+    btn.classList.add('correct');
+    fb.className = 'feedback-box ok';
+    fb.innerHTML = `<strong>Benar!</strong> ${fbText}`;
+  } else {
+    salah++;
+    btn.classList.add('wrong');
+    fb.className = 'feedback-box no';
+    fb.innerHTML = `<strong>Belum tepat.</strong> Jawaban yang benar: <strong>${correct}</strong>. ${fbText}`;
+  }
+
+  document.getElementById('h-benar').textContent = benar;
+  document.getElementById('h-salah').textContent = salah;
+
+  const nb = document.getElementById('next-btn');
+  nb.style.display = 'flex';
+}
+
+document.getElementById('next-btn').onclick = function () {
+  cur++;
+  if (cur < questions.length) renderQ();
+  else showResult();
+};
+
+function showResult() {
+  document.getElementById('game-wrap').style.display = 'none';
+  const rs = document.getElementById('result-screen');
+  rs.style.display = 'block';
+
+  const total = questions.length;
+  const pct = Math.round((benar / total) * 100);
+
+  document.getElementById('res-score').textContent = benar;
+  document.getElementById('rb-benar').textContent = benar;
+  document.getElementById('rb-salah').textContent = salah;
+
+  let title, sub, stars;
+  if (pct === 100) {
+    title = 'Masya Allah, sempurna!';
+    sub = 'Kamu luar biasa! Calon pemimpin Islam masa depan — seperti Al-Fatih yang belajar keras sejak kecil.';
+    stars = 5;
+  } else if (pct >= 80) {
+    title = 'Hebat, hampir sempurna!';
+    sub = 'Pemahaman sejarahmu sangat bagus. Ulangi sekali lagi untuk nilai sempurna!';
+    stars = 4;
+  } else if (pct >= 60) {
+    title = 'Bagus, terus semangat!';
+    sub = 'Sudah lebih dari separuh benar! Belajar lagi agar makin hafal kisah para pahlawan Islam.';
+    stars = 3;
+  } else if (pct >= 40) {
+    title = 'Lumayan, belajar lagi yuk!';
+    sub = 'Masih banyak kisah seru yang belum dikuasai. Usamah bin Zaid pun berlatih keras sebelum jadi panglima!';
+    stars = 2;
+  } else {
+    title = 'Jangan menyerah!';
+    sub = 'Al-Fatih pun butuh bertahun-tahun berlatih. Coba lagi — setiap ulangan membuatmu semakin kuat!';
+    stars = 1;
+  }
+
+  document.getElementById('res-title').textContent = title;
+  document.getElementById('res-sub').textContent = sub;
+
+  const sr = document.getElementById('res-stars');
+  sr.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const ns = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    ns.setAttribute('viewBox', '0 0 24 24');
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z');
+    p.setAttribute('fill', i < stars ? '#c9933a' : '#e2ddd6');
+    p.setAttribute('stroke', i < stars ? '#a0732a' : '#ccc');
+    p.setAttribute('stroke-width', '1');
+    ns.appendChild(p);
+    sr.appendChild(ns);
+  }
+}
+
+startGame();
+</script>
+</body>
+</html>
